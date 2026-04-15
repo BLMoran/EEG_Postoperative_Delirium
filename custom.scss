@@ -1,0 +1,61 @@
+/*-- scss:defaults --*/
+$primary: #77BB77;
+
+/*-- scss:rules --*/
+/* Colored sidebar/TOC with padding/margin for white space */
+#quarto-sidebar, 
+#TOC {
+  background-color: rgba(119, 187, 119, 0.6);
+  padding: 1rem;
+  margin-right: 2rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+}
+
+/* All sidebar text white */
+#quarto-sidebar,
+#quarto-sidebar a,
+#quarto-sidebar .sidebar-title,
+#quarto-sidebar .sidebar-section-item,
+#TOC,
+#TOC a,
+.sidebar-title,
+.sidebar-navigation .sidebar-item a {
+  color: white !important;
+}
+
+#quarto-sidebar a:hover,
+#TOC a:hover {
+  color: #d4edda !important;
+}
+
+/* "Table of contents" heading */
+nav[role="doc-toc"] > h2,
+#TOC > .toc-title,
+.sidebar-tools-main {
+  color: white !important;
+}
+
+/* Remove the fake navbar */
+body::before {
+  display: none;
+}
+
+/* Remove white line/border in sidebar */
+#quarto-sidebar .sidebar-item,
+#quarto-sidebar .sidebar-section-item,
+#TOC li,
+#TOC a,
+.sidebar-navigation,
+.sidebar-item-container,
+.sidebar-item-section {
+  border: none !important;
+  border-left: none !important;
+}
+
+/* Style acronym letters in title */
+.quarto-title-block .title strong,
+#title-block-header .title strong {
+  color: #77BB77;
+}
