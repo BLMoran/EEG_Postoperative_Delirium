@@ -70,7 +70,9 @@ We conducted a systematic review of RCTs following the PRISMA guidelines. The pr
 The primary outcome was the incidence of postoperative delirium assessed using validated tools (CAM, CAM-ICU, DRS-R-98, ICDSC, or DSM-5).
 
 ## Subgroup Analysis
-Analyses will be completed on thte following subgroups:
+
+Analyses will be completed on the following subgroups:
+
 -   Age ≥60 years and all adults ≥18 years
 -   Cardiac & Non-Cardiac Surgery
 -   Chinese & Non-Chinese Trials
@@ -86,9 +88,9 @@ Risk of bias was assessed using the Cochrane RoB 2 tool across five domains. The
 
 Multiple candidate Bayesian meta-analytic models are fitted and compared to determine the most appropriate primary analysis model. All models are implemented via the `bayesma` R package. Candidates span three structural dimensions:
 
-- **Staging**: one-stage (binomial likelihood on arm-level counts) vs two-stage (normal approximation on study-level log-ORs)
-- **Effect structure**: common-effect ($\tau = 0$), random-effects ($\tau > 0$), or mixture random-effects ($K$-component normal mixture)
-- **Small-sample adjustment**: with/without Hartung-Knapp/Sidik-Jonkman (HKSJ) correction
+-   **Staging**: one-stage (binomial likelihood on arm-level counts) vs two-stage (normal approximation on study-level log-ORs)
+-   **Effect structure**: common-effect ($\tau = 0$), random-effects ($\tau > 0$), or mixture random-effects ($K$-component normal mixture)
+-   **Small-sample adjustment**: with/without Hartung-Knapp/Sidik-Jonkman (HKSJ) correction
 
 The **primary model is selected** based on leave-one-out cross-validation (LOO-CV, ELPD), convergence diagnostics, and Pareto $k$ reliability. This data-driven approach avoids pre-committing to a single model structure before examining the evidence.
 
@@ -98,8 +100,7 @@ One-stage models operate directly on arm-level event counts using a binomial lik
 
 $$
 r_{ik} \sim \text{Binomial}(n_{ik}, p_{ik}) 
-$$
-$$
+$$ $$
 \text{logit}(p_{ik}) = \mu_i + \delta_i \cdot x_k
 $$
 
@@ -113,8 +114,7 @@ Two-stage models first compute study-level log-ORs ($y_i$) and standard errors (
 
 $$
 y_i \sim \text{Normal}(\theta_i, \sigma_i^2) 
-$$
-$$
+$$ $$
 \theta_i \sim \text{Normal}(d, \tau^2)
 $$
 
@@ -125,7 +125,7 @@ $$
 Three prior specifications are used across all candidate models:
 
 | Prior Set | $d$ (Overall Effect) | $\tau$ (Heterogeneity) | Rationale |
-|----------------|--------------------|---------------------|----------------|
+|-----------------|-------------------|--------------------|-----------------|
 | Weakly regularising (primary) | $\text{Normal}(0, 1)$ | $\text{Half-Cauchy}(0, 0.5)$ | Centred at OR = 1; allows moderate effects. Half-Cauchy regularises $\tau$ away from implausibly large values |
 | Vague | $\text{Normal}(0, 10)$ | $\text{Half-Cauchy}(0, 1)$ | Effectively non-informative; data-driven |
 | Sceptical | $\text{Normal}(0, 0.5)$ | $\text{Half-Cauchy}(0, 0.3)$ | Sceptical of large treatment effects; tighter constraint on heterogeneity |
@@ -141,57 +141,51 @@ Sensitivity analyses examine the robustness of results across:
 
 ### Estimands and Decision Framework
 
-- **Posterior medians** and **95% credible intervals (CrI)** for the pooled odds ratio
-- **95% prediction intervals** for the treatment effect in a new study
-- **Posterior probability of benefit**: $\Pr(\text{OR} < 1)$
-- **Posterior probability of clinically meaningful benefit**: $\Pr(\text{OR} < 0.8)$
+-   **Posterior medians** and **95% credible intervals (CrI)** for the pooled odds ratio
+-   **95% prediction intervals** for the treatment effect in a new study
+-   **Posterior probability of benefit**: $\Pr(\text{OR} < 1)$
+-   **Posterior probability of clinically meaningful benefit**: $\Pr(\text{OR} < 0.8)$
 
 No correction for multiple comparisons is applied, consistent with the Bayesian approach of reporting the full posterior distribution.
 
 ### Model Estimation
 
-Models are fit using MCMC via the No-U-Turn Sampler (NUTS) in Stan (`cmdstanr`). Four parallel chains, 2,000 iterations each (1,000 warmup + 1,000 sampling). Convergence assessed via $\hat{R}$ (target < 1.01), bulk and tail ESS, and absence of post-warmup divergent transitions.
+Models are fit using MCMC via the No-U-Turn Sampler (NUTS) in Stan (`cmdstanr`). Four parallel chains, 2,000 iterations each (1,000 warmup + 1,000 sampling). Convergence assessed via $\hat{R}$ (target \< 1.01), bulk and tail ESS, and absence of post-warmup divergent transitions.
 
 ### Analytical Workflow
 
 The meta-analysis proceeds through the following stages:
 
-1. **Model Fitting**
-   - Fit candidate models with different structural assumptions:
-     - Common-effect vs random-effects
-     - One-stage (binomial likelihood) vs two-stage (normal approximation)
-     - Small-sample adjustment (Hartung-Knapp/Sidik-Jonkman)
-     - Alternative RE distributions (normal vs finite mixture)
-   - Each model is fitted using MCMC (4 chains, 1000 warmup + 1000 sampling)
-
-2. **Model Comparison & Selection**
-   - Compare models via leave-one-out cross-validation (LOO-CV, ELPD)
-   - Assess convergence diagnostics ($\hat{R}$, ESS, trace plots, divergent transitions)
-   - Select primary model based on predictive performance and diagnostic adequacy
-
-3. **Primary Analysis**
-   - Forest plot with Bayesian shrinkage estimates and prediction interval
-   - Overall posterior distribution plot (pooled OR, $\tau$, prediction)
-   - Risk of bias summary plot
-   - Bayesian Egger's test for small-study effects (with funnel plot)
-
-4. **Subgroup Analysis**
-   - By age category, surgery type, and ethnicity
-   - Forest plots with subgroup-stratified estimates
-
-5. **Sensitivity Analysis**
-   - *Prior sensitivity*: weakly regularising, vague, and sceptical priors
-   - *Model sensitivity*: bias-corrected, selection-weight, PET-PEESE
-   - *Robust Bayesian Model Averaging (RoBMA)*: model-averaged estimates with posterior probabilities for effect, heterogeneity, and publication bias components
-   - Overall sensitivity and ECDF plots
-
-6. **Bayesian Sequential Analysis**
-   - Cumulative meta-analysis (all trials; sensitivity excluding cardiac/Chinese)
-   - Monitoring for efficacy ($\Pr(\text{OR} < 1) > 0.975$) and futility
-   - Bayesian sample size determination for future trials
-
-7. **Overall Interpretation**
-   - Synthesis of model choice, primary findings, subgroups, sensitivity, publication bias, and sequential evidence
+1.  **Model Fitting**
+    -   Fit candidate models with different structural assumptions:
+        -   Common-effect vs random-effects
+        -   One-stage (binomial likelihood) vs two-stage (normal approximation)
+        -   Small-sample adjustment (Hartung-Knapp/Sidik-Jonkman)
+        -   Alternative RE distributions (normal vs finite mixture)
+    -   Each model is fitted using MCMC (4 chains, 1000 warmup + 1000 sampling)
+2.  **Model Comparison & Selection**
+    -   Compare models via leave-one-out cross-validation (LOO-CV, ELPD)
+    -   Assess convergence diagnostics ($\hat{R}$, ESS, trace plots, divergent transitions)
+    -   Select primary model based on predictive performance and diagnostic adequacy
+3.  **Primary Analysis**
+    -   Forest plot with Bayesian shrinkage estimates and prediction interval
+    -   Overall posterior distribution plot (pooled OR, $\tau$, prediction)
+    -   Risk of bias summary plot
+    -   Bayesian Egger's test for small-study effects (with funnel plot)
+4.  **Subgroup Analysis**
+    -   By age category, surgery type, and ethnicity
+    -   Forest plots with subgroup-stratified estimates
+5.  **Sensitivity Analysis**
+    -   *Prior sensitivity*: weakly regularising, vague, and sceptical priors
+    -   *Model sensitivity*: bias-corrected, selection-weight, PET-PEESE
+    -   *Robust Bayesian Model Averaging (RoBMA)*: model-averaged estimates with posterior probabilities for effect, heterogeneity, and publication bias components
+    -   Overall sensitivity and ECDF plots
+6.  **Bayesian Sequential Analysis**
+    -   Cumulative meta-analysis (all trials; sensitivity excluding cardiac/Chinese)
+    -   Monitoring for efficacy ($\Pr(\text{OR} < 1) > 0.975$) and futility
+    -   Bayesian sample size determination for future trials
+7.  **Overall Interpretation**
+    -   Synthesis of model choice, primary findings, subgroups, sensitivity, publication bias, and sequential evidence
 
 ### Software
 
@@ -263,7 +257,6 @@ chars |>
   tab_header(title = "Trial Characteristics")
 ```
 
-
 ## Primary Outcome: Postoperative Delirium
 
 Of the `r format(sum(eeg$N_Total), big.mark = ",")` patients included, the pooled incidence of POD was `r sprintf("%.1f%%", 100 * sum(eeg$Event_Intervention) / sum(eeg$N_Intervention))` (`r sum(eeg$Event_Intervention)`/`r sum(eeg$N_Intervention)`) in the pEEG-guided group, compared to `r sprintf("%.1f%%", 100 * sum(eeg$Event_Control) / sum(eeg$N_Control))` (`r sum(eeg$Event_Control)`/`r sum(eeg$N_Control)`) in the usual care group.
@@ -272,28 +265,26 @@ Of the `r format(sum(eeg$N_Total), big.mark = ",")` patients included, the poole
 
 Candidate models span three dimensions:
 
-- **Staging**: one-stage (binomial likelihood on arm-level data) vs two-stage (normal approximation on study-level log-ORs)
-- **Effect structure**: common-effect ($\tau = 0$) vs random-effects ($\tau > 0$) vs mixture random-effects ($K$-component normal mixture)
-- **Small-sample adjustment**: with/without Hartung-Knapp/Sidik-Jonkman (HKSJ) correction for $k = 10$ studies
+-   **Staging**: one-stage (binomial likelihood on arm-level data) vs two-stage (normal approximation on study-level log-ORs)
+-   **Effect structure**: common-effect ($\tau = 0$) vs random-effects ($\tau > 0$) vs mixture random-effects ($K$-component normal mixture)
+-   **Small-sample adjustment**: with/without Hartung-Knapp/Sidik-Jonkman (HKSJ) correction for $k = 10$ studies
 
 Model selection is based on:
 
-- LOO-CV comparison of expected log-predictive density (ELPD)
-- Convergence diagnostics ($\hat{R} < 1.01$, adequate ESS)
-- Theoretical appropriateness of likelihood and heterogeneity structure
+-   LOO-CV comparison of expected log-predictive density (ELPD)
+-   Convergence diagnostics ($\hat{R} < 1.01$, adequate ESS)
+-   Theoretical appropriateness of likelihood and heterogeneity structure
 
 #### Model Explanation
 
 ::: panel-tabset
-
 ## Common-Effect Model
 
 The common-effect (fixed-effect) model assumes that all studies estimate a single, shared treatment effect $d$, with no between-study heterogeneity. For arm-level binomial data:
 
 $$
 r_{ik} \sim \text{Binomial}(n_{ik}, p_{ik}) 
-$$
-$$
+$$ $$
 \text{logit}(p_{ik}) = \mu_i + d \cdot x_k
 $$
 
@@ -301,9 +292,9 @@ where $r_{ik}$ and $n_{ik}$ are the number of events and total patients in study
 
 **Prior specification:**
 
-| Parameter | Prior |
-|-----------|-------|
-| $d$ (log-OR) | $\text{Normal}(0, \sigma_\mu)$ |
+| Parameter          | Prior                            |
+|--------------------|----------------------------------|
+| $d$ (log-OR)       | $\text{Normal}(0, \sigma_\mu)$   |
 | $\mu_i$ (baseline) | Implicit via binomial likelihood |
 
 The common-effect model serves as a **lower bound on uncertainty**: if heterogeneity truly exists, this model will underestimate the width of the credible interval. Its inclusion allows assessment of whether the direction of the effect is preserved when between-study variability is ignored entirely.
@@ -314,11 +305,9 @@ The one-stage Bayesian random-effects model (Jackson et al. Model 4) is the prim
 
 $$
 r_{ik} \sim \text{Binomial}(n_{ik}, p_{ik}) 
-$$
-$$
+$$ $$
 \text{logit}(p_{ik}) = \mu_i + \delta_i \cdot x_k
-$$
-$$
+$$ $$
 \delta_i \sim \text{Normal}(d, \tau^2)
 $$
 
@@ -327,8 +316,8 @@ where $\tau$ is the between-study standard deviation, quantifying heterogeneity 
 **Prior specification:**
 
 | Parameter | Prior | Justification |
-|-----------|-------|---------------|
-| $d$ (log-OR) | $\text{Normal}(0, 1)$ | Centred at OR = 1; 95% prior mass covers OR $\in$ [0.14, 7.4] |
+|-----------------------|------------------|--------------------------------|
+| $d$ (log-OR) | $\text{Normal}(0, 1)$ | Centred at OR = 1; 95% prior mass covers OR $\in$ \[0.14, 7.4\] |
 | $\tau$ (heterogeneity SD) | $\text{Half-Cauchy}(0, 0.5)$ | Regularises heterogeneity; weakly informative with heavy tail |
 | $\mu_i$ (baseline) | $\text{Normal}(0, 10)$ | Weakly informative on log-odds scale |
 
@@ -342,8 +331,7 @@ The binomial likelihood is:
 
 $$
 r_{ik} \sim \text{Binomial}(n_{ik}, p_{ik})
-$$
-$$
+$$ $$
 \text{logit}(p_{ik}) = \mu_i + \delta_i \cdot x_k
 $$
 
@@ -351,10 +339,10 @@ where $r_{ik}$ is the number of events in study $i$, arm $k$; $n_{ik}$ is the to
 
 **Advantages of the one-stage approach:**
 
-- Preserves the exact binomial likelihood for binary outcomes, avoiding the normal approximation that can be poor when events are sparse
-- Does not require continuity corrections for studies with zero cells in one or both arms
-- Borrows strength across arms within each study through the joint binomial model
-- Estimates the pooled effect and between-study heterogeneity simultaneously
+-   Preserves the exact binomial likelihood for binary outcomes, avoiding the normal approximation that can be poor when events are sparse
+-   Does not require continuity corrections for studies with zero cells in one or both arms
+-   Borrows strength across arms within each study through the joint binomial model
+-   Estimates the pooled effect and between-study heterogeneity simultaneously
 
 ## Two-Stage Model
 
@@ -362,8 +350,7 @@ The two-stage approach first computes study-level effect sizes (log-odds ratios 
 
 $$
 y_i \sim \text{Normal}(\theta_i, \sigma_i^2)
-$$
-$$
+$$ $$
 \theta_i \sim \text{Normal}(d, \tau^2)
 $$
 
@@ -393,27 +380,26 @@ $$
 
 where:
 
-- $w_j$ are mixture weights ($\sum_j w_j = 1$), estimated via a Dirichlet prior
-- $\mu_j$ and $\tau_j$ are component-specific means and heterogeneity SDs
-- $K$ is the number of mixture components (default $K = 2$)
+-   $w_j$ are mixture weights ($\sum_j w_j = 1$), estimated via a Dirichlet prior
+-   $\mu_j$ and $\tau_j$ are component-specific means and heterogeneity SDs
+-   $K$ is the number of mixture components (default $K = 2$)
 
 **Key features:**
 
-- Captures **multimodal heterogeneity** --- the possibility that studies come from distinct subpopulations with different treatment effects
-- The bias-corrected (BC) model of Verde (2021) is a special case where one component represents the "model of interest" (unbiased studies) and the other represents the "model of bias" (biased studies)
-- Component weights $w_j$ provide a posterior estimate of the proportion of studies in each subpopulation
-- When all studies genuinely share a common distribution, the mixture model recovers the standard RE model (both components converge to similar locations)
+-   Captures **multimodal heterogeneity** --- the possibility that studies come from distinct subpopulations with different treatment effects
+-   The bias-corrected (BC) model of Verde (2021) is a special case where one component represents the "model of interest" (unbiased studies) and the other represents the "model of bias" (biased studies)
+-   Component weights $w_j$ provide a posterior estimate of the proportion of studies in each subpopulation
+-   When all studies genuinely share a common distribution, the mixture model recovers the standard RE model (both components converge to similar locations)
 
 **Prior specification:**
 
-| Parameter | Prior |
-|-----------|-------|
-| $\mu_j$ (component means) | $\text{Normal}(0, \sigma_\mu)$ |
-| $\tau_j$ (component SDs) | $\text{Half-Cauchy}(0, \sigma_\tau)$ |
+| Parameter                      | Prior                                   |
+|--------------------------------|-----------------------------------------|
+| $\mu_j$ (component means)      | $\text{Normal}(0, \sigma_\mu)$          |
+| $\tau_j$ (component SDs)       | $\text{Half-Cauchy}(0, \sigma_\tau)$    |
 | $\mathbf{w}$ (mixture weights) | $\text{Dirichlet}(\boldsymbol{\alpha})$ |
 
 The mixture model provides a more flexible representation of between-study heterogeneity, and serves as a robustness check on whether the assumption of a single normally-distributed random effect is adequate for the data.
-
 :::
 
 ```{r model-summary-helper, echo=FALSE}
@@ -500,7 +486,6 @@ format_model_summary <- function(model, measure = "OR") {
 #### Models
 
 ::: panel-tabset
-
 ## One-Stage Common-Effects Model
 
 ```{r onestage-ce}
@@ -719,6 +704,7 @@ compare_table(model_comp)
 ```
 
 ## Model Comparison Plot
+
 ```{r}
 compare_plot(model_comp, type = "both")
 ```
@@ -735,7 +721,6 @@ compare_plot(model_comp, type = "both")
 
 bayesma::diagnostics(model_twostage_re_ss)
 ```
-
 :::
 
 ### Interpretation of Model Comparison and Diagnostics
@@ -771,13 +756,13 @@ mix_mu2_ci <- quantile(exp(as.numeric(mix_draws[["mu_k[2]"]])), c(0.025, 0.975))
 
 **Preferred Model: Two-Stage Random-Effects with Small Sample Adjustment (HKSJ)**
 
-- **LOO-CV**: ranked 1st by ELPD among all candidate models, with only `r nrow(eeg)` studies justifying the small-sample correction
-- **Convergence**: all $\hat{R} < 1.01$, adequate bulk and tail ESS, no post-warmup divergent transitions
-- **Effect estimate**: pooled OR = `r sprintf("%.2f", or_ss)` (95% CrI: `r sprintf("%.2f", ci_ss[1])` to `r sprintf("%.2f", ci_ss[2])`)
-- **HKSJ vs standard RE**: the HKSJ-adjusted model produced a 95% CrI of [`r sprintf("%.2f", ci_ss[1])`, `r sprintf("%.2f", ci_ss[2])`] (width: `r sprintf("%.2f", ci_width_ss)` on the OR scale), compared to [`r sprintf("%.2f", ci_re[1])`, `r sprintf("%.2f", ci_re[2])`] (width: `r sprintf("%.2f", ci_width_re)`) for the unadjusted two-stage RE model. `r if (ci_width_ss > ci_width_re) paste0("The HKSJ interval is wider by ", sprintf("%.2f", ci_width_ss - ci_width_re), " OR units, consistent with the HKSJ correction penalising for the small number of studies (k = ", nrow(eeg), ").") else if (ci_width_ss < ci_width_re) paste0("In this analysis, the HKSJ interval is actually *narrower* by ", sprintf("%.2f", ci_width_re - ci_width_ss), " OR units. This can occur when between-study heterogeneity is modest relative to within-study variances — the t-distribution's heavier tails are offset by the HKSJ variance estimator producing a smaller scaling factor than the standard estimator. The HKSJ model is still preferred on LOO-CV grounds for its better-calibrated coverage properties with k = ", nrow(eeg), " studies.") else "The two intervals are essentially identical in width, suggesting the small-sample penalty is negligible for this dataset."`
-- **Concordance**: one-stage and two-stage approaches yield similar pooled ORs (two-stage RE: `r sprintf("%.2f", or_re)`, common-effect: `r sprintf("%.2f", or_ce)`, HKSJ-adjusted: `r sprintf("%.2f", or_ss)`), confirming that results are not sensitive to the choice of likelihood approximation
-- **Mixture model as normality robustness check**: the two-stage mixture RE model split the studies into two components with weights of `r sprintf("%.0f%%", 100 * mix_w1)` / `r sprintf("%.0f%%", 100 * mix_w2)` (95% CrI for component 1 weight: [`r sprintf("%.2f", mix_w1_ci[1])`, `r sprintf("%.2f", mix_w1_ci[2])`]). The two components had ORs of `r sprintf("%.2f", mix_mu1)` (95% CrI: `r sprintf("%.2f", mix_mu1_ci[1])` to `r sprintf("%.2f", mix_mu1_ci[2])`, τ = `r sprintf("%.2f", mix_tau1)`) and `r sprintf("%.2f", mix_mu2)` (95% CrI: `r sprintf("%.2f", mix_mu2_ci[1])` to `r sprintf("%.2f", mix_mu2_ci[2])`, τ = `r sprintf("%.2f", mix_tau2)`). `r if (abs(mix_w1 - mix_w2) <= 0.3 & abs(log(mix_mu1) - log(mix_mu2)) < 0.5) paste0("The roughly equal component weights and overlapping component ORs indicate that the data do not require two separate populations to explain the observed heterogeneity. A single normal distribution for the random effects is adequate — the standard RE model's normality assumption is supported.") else if (abs(mix_w1 - mix_w2) > 0.3) paste0("The unequal component weights suggest the model is attempting to separate the studies into a majority group and a smaller outlier group. However, with only k = ", nrow(eeg), " studies, the mixture parameters are poorly identified (note the wide CrIs spanning the full [0, 1] range for the weights). The standard normal RE assumption should be interpreted cautiously, and the subgroup analyses (cardiac vs non-cardiac, Chinese vs non-Chinese) may better capture this heterogeneity through identifiable covariates rather than latent mixture components.") else paste0("The component ORs are separated (", sprintf("%.2f", mix_mu1), " vs ", sprintf("%.2f", mix_mu2), "), hinting at possible subpopulations with different treatment effects. However, with k = ", nrow(eeg), " studies and wide CrIs for all mixture parameters, these components are not well-identified. The subgroup analyses provide a more interpretable decomposition of this heterogeneity.")`
-- **One-stage models**: all one-stage specifications showed substantially worse ELPD and high Pareto $k$ values ($\geq 10$), indicating poor LOO reliability for this dataset. The two-stage approximation is preferred here
+-   **LOO-CV**: ranked 1st by ELPD among all candidate models, with only `r nrow(eeg)` studies justifying the small-sample correction
+-   **Convergence**: all $\hat{R} < 1.01$, adequate bulk and tail ESS, no post-warmup divergent transitions
+-   **Effect estimate**: pooled OR = `r sprintf("%.2f", or_ss)` (95% CrI: `r sprintf("%.2f", ci_ss[1])` to `r sprintf("%.2f", ci_ss[2])`)
+-   **HKSJ vs standard RE**: the HKSJ-adjusted model produced a 95% CrI of \[`r sprintf("%.2f", ci_ss[1])`, `r sprintf("%.2f", ci_ss[2])`\] (width: `r sprintf("%.2f", ci_width_ss)` on the OR scale), compared to \[`r sprintf("%.2f", ci_re[1])`, `r sprintf("%.2f", ci_re[2])`\] (width: `r sprintf("%.2f", ci_width_re)`) for the unadjusted two-stage RE model. `r if (ci_width_ss > ci_width_re) paste0("The HKSJ interval is wider by ", sprintf("%.2f", ci_width_ss - ci_width_re), " OR units, consistent with the HKSJ correction penalising for the small number of studies (k = ", nrow(eeg), ").") else if (ci_width_ss < ci_width_re) paste0("In this analysis, the HKSJ interval is actually *narrower* by ", sprintf("%.2f", ci_width_re - ci_width_ss), " OR units. This can occur when between-study heterogeneity is modest relative to within-study variances — the t-distribution's heavier tails are offset by the HKSJ variance estimator producing a smaller scaling factor than the standard estimator. The HKSJ model is still preferred on LOO-CV grounds for its better-calibrated coverage properties with k = ", nrow(eeg), " studies.") else "The two intervals are essentially identical in width, suggesting the small-sample penalty is negligible for this dataset."`
+-   **Concordance**: one-stage and two-stage approaches yield similar pooled ORs (two-stage RE: `r sprintf("%.2f", or_re)`, common-effect: `r sprintf("%.2f", or_ce)`, HKSJ-adjusted: `r sprintf("%.2f", or_ss)`), confirming that results are not sensitive to the choice of likelihood approximation
+-   **Mixture model as normality robustness check**: the two-stage mixture RE model split the studies into two components with weights of `r sprintf("%.0f%%", 100 * mix_w1)` / `r sprintf("%.0f%%", 100 * mix_w2)` (95% CrI for component 1 weight: \[`r sprintf("%.2f", mix_w1_ci[1])`, `r sprintf("%.2f", mix_w1_ci[2])`\]). The two components had ORs of `r sprintf("%.2f", mix_mu1)` (95% CrI: `r sprintf("%.2f", mix_mu1_ci[1])` to `r sprintf("%.2f", mix_mu1_ci[2])`, τ = `r sprintf("%.2f", mix_tau1)`) and `r sprintf("%.2f", mix_mu2)` (95% CrI: `r sprintf("%.2f", mix_mu2_ci[1])` to `r sprintf("%.2f", mix_mu2_ci[2])`, τ = `r sprintf("%.2f", mix_tau2)`). `r if (abs(mix_w1 - mix_w2) <= 0.3 & abs(log(mix_mu1) - log(mix_mu2)) < 0.5) paste0("The roughly equal component weights and overlapping component ORs indicate that the data do not require two separate populations to explain the observed heterogeneity. A single normal distribution for the random effects is adequate — the standard RE model's normality assumption is supported.") else if (abs(mix_w1 - mix_w2) > 0.3) paste0("The unequal component weights suggest the model is attempting to separate the studies into a majority group and a smaller outlier group. However, with only k = ", nrow(eeg), " studies, the mixture parameters are poorly identified (note the wide CrIs spanning the full [0, 1] range for the weights). The standard normal RE assumption should be interpreted cautiously, and the subgroup analyses (cardiac vs non-cardiac, Chinese vs non-Chinese) may better capture this heterogeneity through identifiable covariates rather than latent mixture components.") else paste0("The component ORs are separated (", sprintf("%.2f", mix_mu1), " vs ", sprintf("%.2f", mix_mu2), "), hinting at possible subpopulations with different treatment effects. However, with k = ", nrow(eeg), " studies and wide CrIs for all mixture parameters, these components are not well-identified. The subgroup analyses provide a more interpretable decomposition of this heterogeneity.")`
+-   **One-stage models**: all one-stage specifications showed substantially worse ELPD and high Pareto $k$ values ($\geq 10$), indicating poor LOO reliability for this dataset. The two-stage approximation is preferred here
 
 ```{r set-primary-model}
 #| label: set-primary-model
@@ -789,7 +774,6 @@ model_primary <- model_twostage_re_ss
 ### Primary Analysis Plots
 
 ::: panel-tabset
-
 ## Forest Plot
 
 ```{r forest-primary, warning=FALSE}
@@ -877,9 +861,9 @@ $$
 y_i = d + \beta \cdot \text{SE}_i + \epsilon_i
 $$
 
-- **β < 0** means smaller studies (which have larger standard errors) tend to report **bigger protective effects** — i.e., they find EEG-guided anaesthesia looks *more* beneficial. This is the classic pattern seen with publication bias, where studies that fail to find a benefit are less likely to be published.
-- **β > 0** means smaller studies report **weaker effects** than larger studies — the opposite of the typical publication bias pattern.
-- **β ≈ 0** (95% CrI includes zero) means there is **no evidence** that study size is related to the reported treatment effect.
+-   **β \< 0** means smaller studies (which have larger standard errors) tend to report **bigger protective effects** — i.e., they find EEG-guided anaesthesia looks *more* beneficial. This is the classic pattern seen with publication bias, where studies that fail to find a benefit are less likely to be published.
+-   **β \> 0** means smaller studies report **weaker effects** than larger studies — the opposite of the typical publication bias pattern.
+-   **β ≈ 0** (95% CrI includes zero) means there is **no evidence** that study size is related to the reported treatment effect.
 
 ```{r egger, echo=FALSE}
 #| label: egger-test
@@ -989,13 +973,11 @@ if (cri_includes_zero) {
 bayesma::egger_plot(egger_result, type = "both")
 
 ```
-
 :::
 
 ## Subgroup Analyses
 
 ::: panel-tabset
-
 ## Age Category
 
 ```{r subgroup-age, warning=FALSE}
@@ -1149,19 +1131,17 @@ bayesma::bayes_forest(
   sort_studies_by = "year"
 )
 ```
-
 :::
 
 ## Sensitivity Analysis
 
 Sensitivity analyses re-estimate the pooled OR under alternative models and priors to assess robustness:
 
-- **Model sensitivity**: different structural assumptions about heterogeneity, publication bias, and small-study effects
-- **Prior sensitivity**: weakly regularising, vague, and sceptical priors
-- **Goal**: confirm that results are not an artefact of a single modelling choice
+-   **Model sensitivity**: different structural assumptions about heterogeneity, publication bias, and small-study effects
+-   **Prior sensitivity**: weakly regularising, vague, and sceptical priors
+-   **Goal**: confirm that results are not an artefact of a single modelling choice
 
 ::: panel-tabset
-
 ## Bias-Corrected Model
 
 The bias-corrected model (Jung, 2026) extends the standard random-effects model by incorporating a study-level bias parameter that shifts effect estimates in studies suspected of bias:
@@ -1180,12 +1160,12 @@ $$
 
 **Prior specification:**
 
-| Parameter | Prior |
-|-----------|-------|
-| $d$ (log-OR) | $\text{Normal}(0, \sigma_\mu)$ |
+| Parameter                 | Prior                                |
+|---------------------------|--------------------------------------|
+| $d$ (log-OR)              | $\text{Normal}(0, \sigma_\mu)$       |
 | $\tau$ (heterogeneity SD) | $\text{Half-Cauchy}(0, \sigma_\tau)$ |
-| $B$ (bias shift) | $\text{Normal}(0, 1)$ |
-| $p_{\text{bias}}$ | $\text{Beta}(2, 2)$ |
+| $B$ (bias shift)          | $\text{Normal}(0, 1)$                |
+| $p_{\text{bias}}$         | $\text{Beta}(2, 2)$                  |
 
 This model addresses the possibility that some studies are systematically biased in a particular direction. The posterior for $d$ represents the bias-adjusted pooled effect, and $B$ quantifies the magnitude and direction of systematic bias.
 
@@ -1205,10 +1185,10 @@ where $\omega_j$ are selection weights associated with p-value intervals defined
 
 **Prior specification:**
 
-| Parameter | Prior |
-|-----------|-------|
-| $d$ (log-OR) | $\text{Normal}(0, \sigma_\mu)$ |
-| $\tau$ (heterogeneity SD) | $\text{Half-Cauchy}(0, \sigma_\tau)$ |
+| Parameter                      | Prior                                   |
+|--------------------------------|-----------------------------------------|
+| $d$ (log-OR)                   | $\text{Normal}(0, \sigma_\mu)$          |
+| $\tau$ (heterogeneity SD)      | $\text{Half-Cauchy}(0, \sigma_\tau)$    |
 | $\omega_j$ (selection weights) | $\text{Dirichlet}(\boldsymbol{\alpha})$ |
 
 The selection-weight model provides a **publication-bias-adjusted estimate** of the pooled effect. If the adjusted estimate differs substantially from the unadjusted random-effects estimate, this suggests that selective reporting may be inflating the apparent treatment effect.
@@ -1219,19 +1199,17 @@ The precision-effect test (PET) and precision-effect estimate with standard erro
 
 $$
 y_i = d + \beta \cdot f(\text{SE}_i) + \epsilon_i
-$$
-$$
+$$ $$
 \epsilon_i \sim \text{Normal}(0, \; \sigma_i^2 + \tau^2)
-$$
-where $f(\text{SE}_i)$ is a function of the standard error (SE for PET, SE$^2$ for PEESE), and $\beta$ captures the relationship between study precision and effect size. A non-zero $\beta$ indicates that less precise (smaller) studies tend to report systematically different effects.
+$$ where $f(\text{SE}_i)$ is a function of the standard error (SE for PET, SE$^2$ for PEESE), and $\beta$ captures the relationship between study precision and effect size. A non-zero $\beta$ indicates that less precise (smaller) studies tend to report systematically different effects.
 
 **Prior specification:**
 
-| Parameter | Prior |
-|-----------|-------|
-| $d$ (log-OR) | $\text{Normal}(0, \sigma_\mu)$ |
+| Parameter                 | Prior                                |
+|---------------------------|--------------------------------------|
+| $d$ (log-OR)              | $\text{Normal}(0, \sigma_\mu)$       |
 | $\tau$ (heterogeneity SD) | $\text{Half-Cauchy}(0, \sigma_\tau)$ |
-| $\beta$ (bias slope) | $\text{Normal}(0, 1)$ |
+| $\beta$ (bias slope)      | $\text{Normal}(0, 1)$                |
 
 The PET-PEESE estimate of $d$ can be interpreted as the **extrapolated effect at infinite precision**---i.e., the treatment effect that would be expected if all studies were infinitely large and therefore free from small-study bias.
 
@@ -1249,11 +1227,10 @@ where $p(\mathcal{M}_m \mid \mathbf{y})$ is the posterior probability of model $
 
 RoBMA also provides:
 
-- **Inclusion Bayes factors** for the effect ($\text{BF}_{10}$): the evidence for a non-zero effect, averaged across all model specifications
-- **Inclusion Bayes factors** for heterogeneity and publication bias components
+-   **Inclusion Bayes factors** for the effect ($\text{BF}_{10}$): the evidence for a non-zero effect, averaged across all model specifications
+-   **Inclusion Bayes factors** for heterogeneity and publication bias components
 
 This approach integrates model uncertainty directly into the inference, guarding against the risk that conclusions depend critically on a single set of structural assumptions. A RoBMA estimate that agrees with the primary random-effects model provides strong evidence for robustness.
-
 :::
 
 ### Prior Sensitivity
@@ -1261,7 +1238,7 @@ This approach integrates model uncertainty directly into the inference, guarding
 Each of the above models is fitted under three prior specifications to assess sensitivity to the choice of prior:
 
 | Prior Set | $d$ (log-OR) | $\tau$ (heterogeneity) | Rationale |
-|-----------|-------------|----------------------|-----------|
+|----------------|----------------|-------------------------|----------------|
 | Weakly Regularising | $\text{Normal}(0, 1)$ | $\text{Half-Cauchy}(0, 0.5)$ | Primary analysis priors; moderate regularisation |
 | Vague | $\text{Normal}(0, 10)$ | $\text{Half-Cauchy}(0, 1)$ | Near-flat priors allowing the data to dominate |
 | Sceptical | $\text{Normal}(0, 0.5)$ | $\text{Half-Cauchy}(0, 0.3)$ | Sceptical of large effects; tighter regularisation |
@@ -1271,7 +1248,6 @@ Consistency of the posterior across prior specifications indicates that the data
 ### Sensitivity Plots
 
 ::: panel-tabset
-
 ## Models and Priors
 
 Pooled OR under different model and prior specifications.
@@ -1385,9 +1361,9 @@ model_robma <- bayesma::robma(
 
 **RoBMA Component Probabilities:**
 
-- **Posterior inclusion probabilities** quantify the evidence for each model component (effect, heterogeneity, publication bias)
-- **Inclusion Bayes factors** ($\text{BF}_{10}$) compare the evidence for inclusion vs exclusion of each component
-- A high $\Pr(\text{effect})$ with $\text{BF}_{10} \gg 1$ indicates strong evidence for a non-zero treatment effect, robust to model uncertainty
+-   **Posterior inclusion probabilities** quantify the evidence for each model component (effect, heterogeneity, publication bias)
+-   **Inclusion Bayes factors** ($\text{BF}_{10}$) compare the evidence for inclusion vs exclusion of each component
+-   A high $\Pr(\text{effect})$ with $\text{BF}_{10} \gg 1$ indicates strong evidence for a non-zero treatment effect, robust to model uncertainty
 
 ```{r robma-table, echo=FALSE}
 #| label: tbl-robma
@@ -1449,8 +1425,8 @@ sens_plot_full
 
 ECDF prior plot: each curve = cumulative posterior of OR under a different prior.
 
-- **Curves cluster together** → data dominate the prior; results are robust
-- **Curves diverge** → results are sensitive to prior choice
+-   **Curves cluster together** → data dominate the prior; results are robust
+-   **Curves diverge** → results are sensitive to prior choice
 
 ```{r ecdf-prior}
 #| label: fig-ecdf-prior
@@ -1473,8 +1449,8 @@ bayesma::ecdf_prior_plot(
 
 ECDF model plot: each curve = cumulative posterior under a different structural model (fixed prior).
 
-- **Curves aligned** → conclusion is robust to model choice
-- **Curves diverge** → findings depend on modelling assumptions
+-   **Curves aligned** → conclusion is robust to model choice
+-   **Curves diverge** → findings depend on modelling assumptions
 
 ```{r ecdf-model}
 #| label: fig-ecdf-model
@@ -1497,17 +1473,16 @@ bayesma::ecdf_model_plot(
   label_control = "Usual Care"
 )
 ```
-
 :::
 
 ## Bayesian Sequential Analysis
 
 Bayesian sequential meta-analysis (BSA) applies monitoring rules to the evolving posterior as studies accumulate (Spence et al. 2016, DOI: 10.1002/sim.7052).
 
-- **Sequential updating**: each new study updates the posterior; CrI narrows as evidence grows
-- **Efficacy**: concluded when 95% CrI for pooled OR excludes 1
-- **Futility**: concluded when $\Pr(\text{OR} < 0.8) < 0.05$ — the effect is unlikely to be clinically meaningful
-- **No alpha-spending**: unlike frequentist TSA, the Bayesian approach does not require correction for repeated testing
+-   **Sequential updating**: each new study updates the posterior; CrI narrows as evidence grows
+-   **Efficacy**: concluded when 95% CrI for pooled OR excludes 1
+-   **Futility**: concluded when $\Pr(\text{OR} < 0.8) < 0.05$ — the effect is unlikely to be clinically meaningful
+-   **No alpha-spending**: unlike frequentist TSA, the Bayesian approach does not require correction for repeated testing
 
 Each tab includes a **sample size determination** analysis: posterior predictive simulation to estimate how large a new trial would need to be to achieve a decisive conclusion ($\Pr(\text{OR} < 1) > 0.975$) when added to the existing evidence base.
 
@@ -1661,7 +1636,6 @@ format_ssd <- function(ssd_df, n_sim, baseline_risk, data) {
 ```
 
 ::: panel-tabset
-
 ## All Trials
 
 ### Sequential Analysis
@@ -1682,10 +1656,10 @@ plot_bsa(bsa_results)
 
 **Assurance** answers the question: *"If we ran a new trial of this size and added it to the existing evidence, how likely is it that the updated meta-analysis would reach a conclusive finding?"*
 
-- For each candidate sample size, we simulate a new trial by drawing a plausible treatment effect from the current posterior (accounting for uncertainty in both the pooled effect and heterogeneity), generate binomial outcomes, add the simulated trial to the existing studies, and refit the meta-analysis
-- **Assurance** = the proportion of simulations where the updated posterior crosses the decisiveness threshold ($\Pr(\text{OR} < 1) > 0.975$)
-- Assurance $\geq 80\%$ is conventionally considered adequate (the Bayesian analogue of $\geq 80\%$ frequentist power)
-- Unlike frequentist power calculations, assurance accounts for the full uncertainty in the current evidence — including the possibility that the true effect is null or harmful
+-   For each candidate sample size, we simulate a new trial by drawing a plausible treatment effect from the current posterior (accounting for uncertainty in both the pooled effect and heterogeneity), generate binomial outcomes, add the simulated trial to the existing studies, and refit the meta-analysis
+-   **Assurance** = the proportion of simulations where the updated posterior crosses the decisiveness threshold ($\Pr(\text{OR} < 1) > 0.975$)
+-   Assurance $\geq 80\%$ is conventionally considered adequate (the Bayesian analogue of $\geq 80\%$ frequentist power)
+-   Unlike frequentist power calculations, assurance accounts for the full uncertainty in the current evidence — including the possibility that the true effect is null or harmful
 
 ```{r sample-size, warning=FALSE}
 #| label: tbl-sample-size
@@ -1728,7 +1702,6 @@ ssd_filtered <- run_ssd(model_filtered, eeg_filtered, n_sim = 200)
 baseline_risk_filt <- sum(eeg_filtered$Event_Control) / sum(eeg_filtered$N_Control)
 format_ssd(ssd_filtered, n_sim = 200, baseline_risk = baseline_risk_filt, data = eeg_filtered)
 ```
-
 :::
 
 # Overall Interpretation
@@ -1745,7 +1718,7 @@ ci_primary <- quantile(exp(as.numeric(model_primary$draws[["mu"]])), c(0.025, 0.
 
 The **two-stage random-effects model with HKSJ small-sample adjustment** was selected as the primary analysis model based on LOO-CV (ELPD = -5.05, SE = 2.17), ranking 1st among `r 7` candidate models. The HKSJ adjustment uses a $t$-distribution rather than a normal reference distribution, which is appropriate when the number of studies is small ($k$ = `r nrow(eeg)`).
 
-All candidate models agreed on the **direction** of the treatment effect (OR < 1, favouring EEG-guided anaesthesia). The two-stage common-effect model estimated OR = `r sprintf("%.2f", or_ce)`, the unadjusted two-stage RE model estimated OR = `r sprintf("%.2f", or_re)`, and the HKSJ-adjusted model estimated OR = `r sprintf("%.2f", or_ss)` — these are closely aligned, indicating the overall conclusion is not sensitive to the choice of effect structure or small-sample correction.
+All candidate models agreed on the **direction** of the treatment effect (OR \< 1, favouring EEG-guided anaesthesia). The two-stage common-effect model estimated OR = `r sprintf("%.2f", or_ce)`, the unadjusted two-stage RE model estimated OR = `r sprintf("%.2f", or_re)`, and the HKSJ-adjusted model estimated OR = `r sprintf("%.2f", or_ss)` — these are closely aligned, indicating the overall conclusion is not sensitive to the choice of effect structure or small-sample correction.
 
 The mixture random-effects model, which tests whether the standard assumption of a single normal distribution for the random effects is adequate, estimated component weights of `r sprintf("%.0f%%", 100 * mix_w1)` / `r sprintf("%.0f%%", 100 * mix_w2)` with component ORs of `r sprintf("%.2f", mix_mu1)` and `r sprintf("%.2f", mix_mu2)`. `r if (abs(mix_w1 - mix_w2) <= 0.3) "The roughly equal weights and similar component locations support the standard normality assumption — the data do not require a more complex distributional model." else "The unequal weights hint at possible subpopulations, but with only k = 10 studies the mixture parameters are poorly identified. The subgroup analyses provide a more interpretable decomposition of this heterogeneity."`
 
@@ -1765,9 +1738,9 @@ pr_meaningful <- mean(or_draws < 0.8)
 
 The primary analysis estimates a pooled OR of **`r sprintf("%.2f", or_median)`** (95% CrI: `r sprintf("%.2f", or_lower)` to `r sprintf("%.2f", or_upper)`) for the effect of EEG-guided anaesthesia on postoperative delirium compared to usual care.
 
-- **Probability that EEG-guided anaesthesia reduces delirium** ($\Pr(\text{OR} < 1)$): **`r sprintf("%.1f%%", 100 * pr_benefit)`**. `r if (pr_benefit > 0.95) "This is strong evidence that the intervention reduces the odds of delirium." else if (pr_benefit > 0.80) "This is moderate evidence of benefit — more likely than not that EEG-guided anaesthesia helps, but short of the conventional 97.5% threshold for a conclusive finding." else "This provides only weak evidence of benefit."`
-- **Probability that the benefit is clinically meaningful** ($\Pr(\text{OR} < 0.8)$, i.e., at least a 20% relative reduction in odds): **`r sprintf("%.1f%%", 100 * pr_meaningful)`**. `r if (pr_meaningful > 0.50) paste0("It is more likely than not (", sprintf("%.0f%%", 100 * pr_meaningful), " probability) that the effect reaches this threshold of clinical significance.") else paste0("There is only a ", sprintf("%.0f%%", 100 * pr_meaningful), "% probability that the effect reaches this threshold — meaning the true effect, if it exists, may be too small to be clinically important.")`
-- The 95% CrI `r if (or_upper < 1) paste0("excludes 1.0 (upper bound ", sprintf("%.2f", or_upper), "), providing conclusive evidence at the 95% level that EEG-guided anaesthesia reduces the incidence of postoperative delirium.") else if (or_upper < 1.10) paste0("has an upper bound of ", sprintf("%.2f", or_upper), ", which includes 1.0 — meaning we cannot exclude the possibility that EEG-guided anaesthesia has no effect on delirium. The evidence is suggestive of benefit but not yet conclusive.") else paste0("extends to ", sprintf("%.2f", or_upper), ", well above 1.0. The data are compatible with both a meaningful benefit and no effect (or even a small increase in delirium risk).")`
+-   **Probability that EEG-guided anaesthesia reduces delirium** ($\Pr(\text{OR} < 1)$): **`r sprintf("%.1f%%", 100 * pr_benefit)`**. `r if (pr_benefit > 0.95) "This is strong evidence that the intervention reduces the odds of delirium." else if (pr_benefit > 0.80) "This is moderate evidence of benefit — more likely than not that EEG-guided anaesthesia helps, but short of the conventional 97.5% threshold for a conclusive finding." else "This provides only weak evidence of benefit."`
+-   **Probability that the benefit is clinically meaningful** ($\Pr(\text{OR} < 0.8)$, i.e., at least a 20% relative reduction in odds): **`r sprintf("%.1f%%", 100 * pr_meaningful)`**. `r if (pr_meaningful > 0.50) paste0("It is more likely than not (", sprintf("%.0f%%", 100 * pr_meaningful), " probability) that the effect reaches this threshold of clinical significance.") else paste0("There is only a ", sprintf("%.0f%%", 100 * pr_meaningful), "% probability that the effect reaches this threshold — meaning the true effect, if it exists, may be too small to be clinically important.")`
+-   The 95% CrI `r if (or_upper < 1) paste0("excludes 1.0 (upper bound ", sprintf("%.2f", or_upper), "), providing conclusive evidence at the 95% level that EEG-guided anaesthesia reduces the incidence of postoperative delirium.") else if (or_upper < 1.10) paste0("has an upper bound of ", sprintf("%.2f", or_upper), ", which includes 1.0 — meaning we cannot exclude the possibility that EEG-guided anaesthesia has no effect on delirium. The evidence is suggestive of benefit but not yet conclusive.") else paste0("extends to ", sprintf("%.2f", or_upper), ", well above 1.0. The data are compatible with both a meaningful benefit and no effect (or even a small increase in delirium risk).")`
 
 ## Subgroup Analyses
 
@@ -1779,11 +1752,11 @@ ci_filtered <- quantile(exp(as.numeric(model_filtered$draws[["mu"]])), c(0.025, 
 pr_filtered <- mean(exp(as.numeric(model_filtered$draws[["mu"]])) < 1)
 ```
 
-- **Age category**: the treatment effect was consistent across age categories (≥60 years and all adults ≥18 years), with overlapping credible intervals. Age does not appear to modify the effect of EEG-guided anaesthesia on delirium in this dataset.
-- **Surgery type**: the effect was driven predominantly by non-cardiac surgery studies. Cardiac surgery studies showed an attenuated and more uncertain effect, possibly reflecting different anaesthetic protocols, baseline delirium risk, or confounding by cardiopulmonary bypass.
-- **Ethnicity**: Chinese cohorts showed a larger treatment effect than non-Chinese cohorts. This may reflect differences in anaesthetic practice, delirium assessment methods, baseline risk, or publication culture.
-- **Excluding cardiac surgery + Chinese studies**: this is the most informative sensitivity subgroup, as it removes the two factors that dominate the overall result. The pooled OR rises to **`r sprintf("%.2f", or_filtered)`** (95% CrI: `r sprintf("%.2f", ci_filtered[1])` to `r sprintf("%.2f", ci_filtered[2])`), with $\Pr(\text{OR} < 1)$ = `r sprintf("%.1f%%", 100 * pr_filtered)`. `r if (ci_filtered[2] > 1) paste0("The 95% CrI now clearly includes 1.0 (upper bound ", sprintf("%.2f", ci_filtered[2]), "), making the evidence **inconclusive** in this more generalisable population. The apparent benefit seen in the full cohort is largely attributable to cardiac surgery and Chinese studies.") else "The CrI still excludes 1.0 even in this restricted subgroup, providing evidence that the benefit extends beyond cardiac surgery and Chinese populations."` 
-- All subgroup findings should be interpreted cautiously given $k \leq 5$ studies per subgroup.
+-   **Age category**: the treatment effect was consistent across age categories (≥60 years and all adults ≥18 years), with overlapping credible intervals. Age does not appear to modify the effect of EEG-guided anaesthesia on delirium in this dataset.
+-   **Surgery type**: the effect was driven predominantly by non-cardiac surgery studies. Cardiac surgery studies showed an attenuated and more uncertain effect, possibly reflecting different anaesthetic protocols, baseline delirium risk, or confounding by cardiopulmonary bypass.
+-   **Ethnicity**: Chinese cohorts showed a larger treatment effect than non-Chinese cohorts. This may reflect differences in anaesthetic practice, delirium assessment methods, baseline risk, or publication culture.
+-   **Excluding cardiac surgery + Chinese studies**: this is the most informative sensitivity subgroup, as it removes the two factors that dominate the overall result. The pooled OR rises to **`r sprintf("%.2f", or_filtered)`** (95% CrI: `r sprintf("%.2f", ci_filtered[1])` to `r sprintf("%.2f", ci_filtered[2])`), with $\Pr(\text{OR} < 1)$ = `r sprintf("%.1f%%", 100 * pr_filtered)`. `r if (ci_filtered[2] > 1) paste0("The 95% CrI now clearly includes 1.0 (upper bound ", sprintf("%.2f", ci_filtered[2]), "), making the evidence **inconclusive** in this more generalisable population. The apparent benefit seen in the full cohort is largely attributable to cardiac surgery and Chinese studies.") else "The CrI still excludes 1.0 even in this restricted subgroup, providing evidence that the benefit extends beyond cardiac surgery and Chinese populations."`
+-   All subgroup findings should be interpreted cautiously given $k \leq 5$ studies per subgroup.
 
 ## Sensitivity Analysis
 
@@ -1970,11 +1943,11 @@ cat("4. **If any benefit exists, it may be population-specific**: the contrast b
 
 ## Limitations
 
-1. **Small number of studies**: $k$ = `r nrow(eeg)` RCTs limits precision of heterogeneity estimates and power of subgroup analyses
-2. **Heterogeneity**: substantial variation in surgical populations, pEEG monitors (BIS, SedLine, Narcotrend, AEP), delirium assessment tools (CAM, CAM-ICU, DRS-R-98), and follow-up durations
-3. **Open-label design**: performance bias is possible — anaesthetists must see monitor readings to act on them; outcome assessor blinding partially mitigates this
-4. **Disproportionate influence**: Chinese cohorts and cardiac surgery studies drive the overall effect; excluding them attenuates the pooled OR from `r sprintf("%.2f", or_median)` to `r sprintf("%.2f", or_filtered)` (95% CrI: `r sprintf("%.2f", ci_filtered[1])` to `r sprintf("%.2f", ci_filtered[2])`)
-5. **Delirium assessment heterogeneity**: different tools (CAM, CAM-ICU, DRS-R-98, ICDSC, DSM-5) have different sensitivities and specificities, which may contribute to between-study heterogeneity
+1.  **Small number of studies**: $k$ = `r nrow(eeg)` RCTs limits precision of heterogeneity estimates and power of subgroup analyses
+2.  **Heterogeneity**: substantial variation in surgical populations, pEEG monitors (BIS, SedLine, Narcotrend, AEP), delirium assessment tools (CAM, CAM-ICU, DRS-R-98), and follow-up durations
+3.  **Open-label design**: performance bias is possible — anaesthetists must see monitor readings to act on them; outcome assessor blinding partially mitigates this
+4.  **Disproportionate influence**: Chinese cohorts and cardiac surgery studies drive the overall effect; excluding them attenuates the pooled OR from `r sprintf("%.2f", or_median)` to `r sprintf("%.2f", or_filtered)` (95% CrI: `r sprintf("%.2f", ci_filtered[1])` to `r sprintf("%.2f", ci_filtered[2])`)
+5.  **Delirium assessment heterogeneity**: different tools (CAM, CAM-ICU, DRS-R-98, ICDSC, DSM-5) have different sensitivities and specificities, which may contribute to between-study heterogeneity
 
 ## Conclusion
 
