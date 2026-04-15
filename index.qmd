@@ -69,9 +69,16 @@ We conducted a systematic review of RCTs following the PRISMA guidelines. The pr
 
 The primary outcome was the incidence of postoperative delirium assessed using validated tools (CAM, CAM-ICU, DRS-R-98, ICDSC, or DSM-5).
 
+## Subgroup Analysis
+Analyses will be completed on thte following subgroups:
+-   Age ≥60 years and all adults ≥18 years
+-   Cardiac & Non-Cardiac Surgery
+-   Chinese & Non-Chinese Trials
+-   Non-Cardiac surgery in Non-Chinese trials
+
 ## Quality Assessment
 
-Risk of bias was assessed using the Cochrane RoB 2 tool across seven domains. The quality of evidence for the primary outcome was assessed using the GRADE approach.
+Risk of bias was assessed using the Cochrane RoB 2 tool across five domains. The quality of evidence for the primary outcome was assessed using the GRADE approach.
 
 ## Statistical Analysis
 
@@ -93,7 +100,7 @@ $$
 r_{ik} \sim \text{Binomial}(n_{ik}, p_{ik}) 
 $$
 $$
-\quad \text{logit}(p_{ik}) = \mu_i + \delta_i \cdot x_k
+\text{logit}(p_{ik}) = \mu_i + \delta_i \cdot x_k
 $$
 
 where $r_{ik}$ and $n_{ik}$ are the events and total patients in study $i$, arm $k$; $\mu_i$ is the study-specific baseline log-odds; $\delta_i$ is the study-specific treatment effect; and $x_k$ is a treatment indicator. Under random-effects: $\delta_i \sim \text{Normal}(d, \tau^2)$.
@@ -108,7 +115,7 @@ $$
 y_i \sim \text{Normal}(\theta_i, \sigma_i^2) 
 $$
 $$
-\quad \theta_i \sim \text{Normal}(d, \tau^2)
+\theta_i \sim \text{Normal}(d, \tau^2)
 $$
 
 **Advantages**: computational efficiency, compatibility with the full suite of sensitivity models (bias-corrected, selection-weight, PET-PEESE, RoBMA).
@@ -130,7 +137,7 @@ Sensitivity analyses examine the robustness of results across:
 1.  **Different model specifications**: common-effect, random-effects, bias-corrected, selection models (weight-function), and PET-PEESE
 2.  **Robust Bayesian Model Averaging (RoBMA)**: model-averaged estimates integrating uncertainty about publication bias and model specification
 3.  **Risk-of-bias exclusion**: repeating the analysis excluding studies rated as having high risk of bias
-4.  **Subgroup analyses**: by age category ($\geq$60 vs $\geq$18), surgery type (cardiac vs non-cardiac), and ethnicity (Chinese vs non-Chinese cohorts)
+4.  **Subgroup analyses**: by age category ($\geq$ 60 vs $\geq$ 18), surgery type (cardiac vs non-cardiac), and ethnicity (Chinese vs non-Chinese cohorts)
 
 ### Estimands and Decision Framework
 
@@ -284,10 +291,10 @@ Model selection is based on:
 The common-effect (fixed-effect) model assumes that all studies estimate a single, shared treatment effect $d$, with no between-study heterogeneity. For arm-level binomial data:
 
 $$
-r_{ik} \sim \text{Binomial}(n_{ik}, p_{ik}), 
+r_{ik} \sim \text{Binomial}(n_{ik}, p_{ik}) 
 $$
 $$
-\quad \text{logit}(p_{ik}) = \mu_i + d \cdot x_k
+\text{logit}(p_{ik}) = \mu_i + d \cdot x_k
 $$
 
 where $r_{ik}$ and $n_{ik}$ are the number of events and total patients in study $i$, arm $k$; $\mu_i$ is the study-specific baseline log-odds; $d$ is the common log-odds ratio; and $x_k$ is a treatment indicator ($x_k = 0$ for control, $x_k = 1$ for intervention).
@@ -309,7 +316,7 @@ $$
 r_{ik} \sim \text{Binomial}(n_{ik}, p_{ik}) 
 $$
 $$
-\quad \text{logit}(p_{ik}) = \mu_i + \delta_i \cdot x_k
+\text{logit}(p_{ik}) = \mu_i + \delta_i \cdot x_k
 $$
 $$
 \delta_i \sim \text{Normal}(d, \tau^2)
@@ -337,7 +344,7 @@ $$
 r_{ik} \sim \text{Binomial}(n_{ik}, p_{ik})
 $$
 $$
-\quad \text{logit}(p_{ik}) = \mu_i + \delta_i \cdot x_k
+\text{logit}(p_{ik}) = \mu_i + \delta_i \cdot x_k
 $$
 
 where $r_{ik}$ is the number of events in study $i$, arm $k$; $n_{ik}$ is the total number of patients; $\mu_i$ is the study-specific baseline log-odds; $\delta_i$ is the study-specific treatment effect (equal to a common $d$ under the common-effect model, or drawn from $\text{Normal}(d, \tau^2)$ under the random-effects model); and $x_k$ is a treatment indicator.
@@ -356,7 +363,6 @@ The two-stage approach first computes study-level effect sizes (log-odds ratios 
 $$
 y_i \sim \text{Normal}(\theta_i, \sigma_i^2)
 $$
-
 $$
 \theta_i \sim \text{Normal}(d, \tau^2)
 $$
@@ -1212,9 +1218,11 @@ The selection-weight model provides a **publication-bias-adjusted estimate** of 
 The precision-effect test (PET) and precision-effect estimate with standard error (PEESE) model addresses small-study effects---the tendency for smaller studies to report larger effects, which may reflect publication bias, outcome reporting bias, or other mechanisms:
 
 $$
-y_i = d + \beta \cdot f(\text{SE}_i) + \epsilon_i, \quad \epsilon_i \sim \text{Normal}(0, \; \sigma_i^2 + \tau^2)
+y_i = d + \beta \cdot f(\text{SE}_i) + \epsilon_i
 $$
-
+$$
+\epsilon_i \sim \text{Normal}(0, \; \sigma_i^2 + \tau^2)
+$$
 where $f(\text{SE}_i)$ is a function of the standard error (SE for PET, SE$^2$ for PEESE), and $\beta$ captures the relationship between study precision and effect size. A non-zero $\beta$ indicates that less precise (smaller) studies tend to report systematically different effects.
 
 **Prior specification:**
